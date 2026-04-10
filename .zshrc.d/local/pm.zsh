@@ -1,6 +1,8 @@
 # pm — Product PM2 工具
+_PM_BIN="${DOTFILES_LOCAL}/pm/product-pm2.js"
+
 pm() {
-  node /Volumes/ssd770/pm/product-pm2.js "$@"
+  node "$_PM_BIN" "$@"
 }
 
 _pm() {
@@ -27,27 +29,27 @@ _pm() {
 
   case $cmd in
     logs|describe)
-      local -a apps=($(node /Volumes/ssd770/pm/product-pm2.js _apps pm2 2>/dev/null))
+      local -a apps=($(node "$_PM_BIN" _apps pm2 2>/dev/null))
       _values 'app' $apps
       ;;
     build)
-      local -a apps=(all $(node /Volumes/ssd770/pm/product-pm2.js _apps build 2>/dev/null))
+      local -a apps=(all $(node "$_PM_BIN" _apps build 2>/dev/null))
       _values 'app' $apps
       ;;
     deploy)
-      local -a apps=(all $(node /Volumes/ssd770/pm/product-pm2.js _apps deploy 2>/dev/null))
+      local -a apps=(all $(node "$_PM_BIN" _apps deploy 2>/dev/null))
       _values 'app' $apps
       ;;
     start|reload|restart|stop|delete)
-      local -a apps=(all $(node /Volumes/ssd770/pm/product-pm2.js _apps pm2 2>/dev/null))
+      local -a apps=(all $(node "$_PM_BIN" _apps pm2 2>/dev/null))
       _values 'app' $apps
       ;;
     run)
       if [[ $CURRENT -eq 3 ]]; then
-        local -a tasks=($(node /Volumes/ssd770/pm/product-pm2.js _tasks 2>/dev/null))
+        local -a tasks=($(node "$_PM_BIN" _tasks 2>/dev/null))
         _values 'task' $tasks
       else
-        local -a apps=(all $(node /Volumes/ssd770/pm/product-pm2.js _apps 2>/dev/null))
+        local -a apps=(all $(node "$_PM_BIN" _apps 2>/dev/null))
         _values 'app' $apps
       fi
       ;;

@@ -5,6 +5,8 @@ export DOTFILES_LOCAL="/Volumes/ssd770/dotfiles-local"
 export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
 export PATH="/opt/homebrew/lib/ruby/gems/3.3.0/bin:$PATH"
 export PATH="$PATH:$HOME/.dotnet/tools"
+export PATH="$PATH:/opt/local/lib/postgresql15/bin"
+export PATH="$PATH:$HOME/Library/Python/3.9/bin"
 
 export DOTNET_ROOT=/usr/local/share/dotnet
 

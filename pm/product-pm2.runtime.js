@@ -1,15 +1,14 @@
+const fs = require('fs');
 const path = require('path');
-const userConfig = require('./product-pm2.config');
 
 const fail = (message) => {
-  throw new Error(`Invalid product-pm2.config.js: ${message}`);
+  throw new Error(`Invalid pm config: ${message}`);
 };
 
 const ensureString = (value, fieldName) => {
   if (typeof value !== 'string' || value.trim() === '') {
     fail(`${fieldName} must be a non-empty string`);
   }
-
   return value.trim();
 };
 
@@ -17,7 +16,6 @@ const ensureStringArray = (value, fieldName) => {
   if (!Array.isArray(value)) {
     fail(`${fieldName} must be an array`);
   }
-
   return value.map((item, index) =>
     ensureString(item, `${fieldName}[${index}]`),
   );
@@ -44,13 +42,33 @@ const normalizeTask = (value, defaultCommand, fieldName) => {
   const args =
     value.args == null ? [] : ensureStringArray(value.args, `${fieldName}.args`);
 
-  return {
-    command,
-    args,
-    pm2: Boolean(value.pm2),
-  };
+  return { command, args, pm2: Boolean(value.pm2) };
 };
 
+// ── 加载配置 ──────────────────────────────────────────────────────────────────
+// 优先读取 PM_CONFIG 环境变量指向的 JSON 文件；否则回退到本地 JS 配置
+let userConfig;
+const pmConfigPath = process.env.PM_CONFIG;
+
+if (pmConfigPath) {
+  if (!fs.existsSync(pmConfigPath)) {
+    throw new Error(`PM_CONFIG file not found: ${pmConfigPath}`);
+  }
+  const json = JSON.parse(fs.readFileSync(pmConfigPath, 'utf8'));
+  const baseDir = process.env.PM_PROJECT;
+  if (!baseDir) {
+    throw new Error('PM_PROJECT is required when using PM_CONFIG');
+  }
+  userConfig = {
+    baseDir,
+    logDir: process.env.PM_LOG_DIR || path.join(baseDir, 'logs', 'pm2'),
+    apps: Array.isArray(json) ? json : json.apps,
+  };
+} else {
+  userConfig = require('./product-pm2.config');
+}
+
+// ── 解析 apps ─────────────────────────────────────────────────────────────────
 const baseDir = ensureString(userConfig.baseDir, 'baseDir');
 const logDir = ensureString(userConfig.logDir, 'logDir');
 
@@ -67,10 +85,7 @@ const apps = userConfig.apps.map((app, index) => {
   }
 
   const name = ensureString(app.name, `apps[${index}].name`);
-  const relativeDir = ensureString(
-    app.relativeDir,
-    `apps[${index}].relativeDir`,
-  );
+  const relativeDir = ensureString(app.relativeDir, `apps[${index}].relativeDir`);
   const command = ensureString(app.command, `apps[${index}].command`);
 
   if (path.isAbsolute(relativeDir)) {
@@ -133,10 +148,7 @@ const getAppsByTask = (taskName) =>
 const getTask = (app, taskName) => app.tasks[taskName] || null;
 
 const getPm2Task = (app) => {
-  if (!app.pm2TaskName) {
-    return null;
-  }
-
+  if (!app.pm2TaskName) return null;
   return app.tasks[app.pm2TaskName];
 };
 

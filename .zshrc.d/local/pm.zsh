@@ -7,9 +7,11 @@ pm() {
 
 _pm() {
   local cmd=${words[2]}
+  local sub=${words[3]}
 
   if [[ $CURRENT -eq 2 ]]; then
     local -a commands=(
+      'context:管理 context（use/show/list）'
       'apps:列出所有已配置的应用'
       'list:查看 PM2 进程列表'
       'logs:查看指定应用的日志'
@@ -28,6 +30,15 @@ _pm() {
   fi
 
   case $cmd in
+    context)
+      if [[ $CURRENT -eq 3 ]]; then
+        local -a subs=('use:切换 context' 'show:查看当前 context' 'list:列出可用 context')
+        _describe 'subcommand' subs
+      elif [[ $CURRENT -eq 4 && $sub == 'use' ]]; then
+        local -a contexts=($(node "$PM_BIN" _contexts 2>/dev/null))
+        _values 'context' $contexts
+      fi
+      ;;
     logs|describe)
       local -a apps=($(node "$PM_BIN" _apps pm2 2>/dev/null))
       _values 'app' $apps

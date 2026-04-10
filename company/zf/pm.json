@@ -1,4 +1,6 @@
 {
+  "project": "/Volumes/ssd770/zf/product",
+  "logDir": "logs/pm2",
   "apps": [
     {
       "name": "product",
